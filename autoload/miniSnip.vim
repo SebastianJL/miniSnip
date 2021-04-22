@@ -1,6 +1,6 @@
 " Script scope variables:
 "   s:pattern, s:pattern_final, s:op, s:ed, s:begcol,
-"   s:ph_begin, s:placeholders_count, s:named, s:foo
+"   s:ph_begin, s:placeholders_count, s:named, s:pos
 
 let s:pattern  = ""
 
@@ -86,7 +86,7 @@ function! s:insertFile(snipfile) abort
   endif
   let &l:formatoptions = l:fo_old
 
-  let s:foo = getpos('.')
+  let s:pos = getpos('.')
 
   exec 'norm! '. l:begline . 'gg' . s:begcol . '|'
 
@@ -97,7 +97,7 @@ function! s:replaceRefs() abort
   let s:placeholders_count += 1
   let l:pos = getpos('.')
   undojoin
-  silent! exec '%s/\V'.s:op.s:var("refmark").s:placeholders_count.s:ed.'/'.l:s.'/g'
+  silent! exec s:begcol.',$s/\V'.s:op.s:var("refmark").s:placeholders_count.s:ed.'/'.l:s.'/g'
   if exists("s:named")
     " `s:named` already contains s:var("named")
     silent! exec '%s/\V'.s:op.s:named.s:ed.'/'.l:s.'/g'
@@ -133,11 +133,11 @@ endfunction
 function! s:findPlaceholder(pat) abort " from: https://stackoverflow.com/a/8697727/10247460
   let [sl, sc] = searchpos(a:pat, 'W')
   let s:ph_begin = virtcol('.')
-  if sl == 0 && sc == 0 && s:foo != [0]
-    call setpos('.', s:foo)
+  if sl == 0 && sc == 0 && s:pos != [0]
+    call setpos('.', s:pos)
     return ""
   else
-    let s:foo = [0]
+    let s:pos = [0]
   endif
   let [el, ec] = searchpos(a:pat, 'cneW')
   let t = map(getline(sl ? sl : -1, el), 'v:val."\n"')
